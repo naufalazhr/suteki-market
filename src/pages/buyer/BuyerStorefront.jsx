@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStore } from '../../contexts/StoreContext';
 import { Button } from '../../components/Button';
@@ -9,9 +9,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const BuyerStorefront = () => {
   const { user } = useAuth();
-  const { products, sellers, placeOrder } = useStore();
+  const { products, sellers, placeOrder, refreshData } = useStore();
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  useEffect(() => {
+    refreshData();
+  }, []);
   const [checkoutStep, setCheckoutStep] = useState('cart');
   const [paymentMethod, setPaymentMethod] = useState('');
   
@@ -182,60 +186,68 @@ export const BuyerStorefront = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.5rem' }}>
         <AnimatePresence>
-          {filteredProducts.map(product => (
-            <motion.div
-              key={product.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <div style={{ height: '150px', backgroundColor: '#f1f5f9', marginBottom: '1rem', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                  {product.image ? (
-                    <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--color-text-muted)' }}>Tidak Ada Gambar</div>
-                  )}
-                </div>
-                
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <div style={{ 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    gap: '0.25rem', 
-                    fontSize: '0.75rem', 
-                    color: 'var(--color-primary)',
-                    backgroundColor: 'var(--color-primary-light)',
-                    padding: '0.125rem 0.5rem',
-                    borderRadius: '999px',
-                    marginBottom: '0.25rem'
-                  }}>
-                    <Storefront size={12} weight="fill" />
-                    {getSellerName(product.sellerId)}
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map(product => (
+              <motion.div
+                key={product.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <div style={{ height: '150px', backgroundColor: '#f1f5f9', marginBottom: '1rem', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--color-text-muted)' }}>Tidak Ada Gambar</div>
+                    )}
                   </div>
-                  <h3 style={{ fontWeight: 600, fontSize: '1.125rem' }}>{product.name}</h3>
-                </div>
-
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1rem', flex: 1 }}>{product.description}</p>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>Rp {product.price.toLocaleString()}</div>
-                    <div style={{ fontSize: '0.75rem', color: product.stock > 0 ? 'var(--color-text-muted)' : 'var(--color-danger)' }}>
-                      {product.stock > 0 ? `Stok: ${product.stock}` : 'Stok Habis'}
+                  
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <div style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '0.25rem', 
+                      fontSize: '0.75rem', 
+                      color: 'var(--color-primary)',
+                      backgroundColor: 'var(--color-primary-light)',
+                      padding: '0.125rem 0.5rem',
+                      borderRadius: '999px',
+                      marginBottom: '0.25rem'
+                    }}>
+                      <Storefront size={12} weight="fill" />
+                      {getSellerName(product.sellerId)}
                     </div>
+                    <h3 style={{ fontWeight: 600, fontSize: '1.125rem' }}>{product.name}</h3>
                   </div>
-                  <motion.div whileTap={{ scale: 0.95 }}>
-                    <Button size="sm" onClick={() => addToCart(product)} disabled={product.stock <= 0}>
-                      {product.stock > 0 ? 'Beli' : 'Habis'}
-                    </Button>
-                  </motion.div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1rem', flex: 1 }}>{product.description}</p>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '1.125rem' }}>Rp {product.price.toLocaleString()}</div>
+                      <div style={{ fontSize: '0.75rem', color: product.stock > 0 ? 'var(--color-text-muted)' : 'var(--color-danger)' }}>
+                        {product.stock > 0 ? `Stok: ${product.stock}` : 'Stok Habis'}
+                      </div>
+                    </div>
+                    <motion.div whileTap={{ scale: 0.95 }}>
+                      <Button size="sm" onClick={() => addToCart(product)} disabled={product.stock <= 0}>
+                        {product.stock > 0 ? 'Beli' : 'Habis'}
+                      </Button>
+                    </motion.div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+              <Storefront size={48} weight="duotone" style={{ marginBottom: '1rem', opacity: 0.5 }} />
+              <p>Tidak ada produk yang ditemukan.</p>
+              <p style={{ fontSize: '0.875rem' }}>Coba ubah filter atau kata kunci pencarian.</p>
+            </div>
+          )}
         </AnimatePresence>
       </div>
 
