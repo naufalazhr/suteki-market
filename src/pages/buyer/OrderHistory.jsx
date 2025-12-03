@@ -1,15 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useStore } from '../../contexts/StoreContext';
 import { Card } from '../../components/Card';
-import { ClockCounterClockwise } from 'phosphor-react';
+import { Button } from '../../components/Button';
+import { ClockCounterClockwise, Upload, Image, CheckCircle } from 'phosphor-react';
 
 export const OrderHistory = () => {
   const { user } = useAuth();
-  const { orders } = useStore();
+  const { orders, updateOrder } = useStore();
+  const [uploadingId, setUploadingId] = useState(null);
 
   // Filter orders for current buyer
   const myOrders = orders.filter(order => order.buyerId === user.id);
+
+  const handleFileUpload = (event, order) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert('Ukuran file terlalu besar (maksimal 5MB)');
+      return;
+    }
+
+    setUploadingId(order.id);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      updateOrder({
+        ...order,
+        paymentProofImage: base64String
+      });
+      setUploadingId(null);
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div>
@@ -82,14 +107,81 @@ export const OrderHistory = () => {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                  Metode Pembayaran: <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
-                    {order.paymentMethod === 'qris' ? 'QRIS' : 'Transfer Bank'}
-                  </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                    Metode Pembayaran: <span style={{ fontWeight: 500, color: 'var(--color-text)' }}>
+                      {order.paymentMethod === 'qris' ? 'QRIS' : 'Transfer Bank'}
+                    </span>
+                  </div>
+                  
+                  {/* Payment Proof Section */}
+                  {order.paymentMethod === 'transfer' && (
+                    <div style={{ marginTop: '1rem' }}>
+                      {order.paymentProofImage ? (
+                        <div>
+                          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <CheckCircle size={16} color="var(--color-success)" weight="fill" />
+                            Bukti Bayar Terupload
+                          </p>
+                          <div style={{ position: 'relative', width: 'fit-content' }}>
+                            <img 
+                              src={order.paymentProofImage} 
+                              alt="Bukti Bayar" 
+                              style={{ 
+                                width: '100px', 
+                                height: '100px', 
+                                objectFit: 'cover', 
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid var(--color-border)',
+                                cursor: 'pointer'
+                              }}
+                              onClick={() => window.open(order.paymentProofImage, '_blank')}
+                            />
+                            <label style={{ 
+                              display: 'block', 
+                              marginTop: '0.5rem', 
+                              fontSize: '0.75rem', 
+                              color: 'var(--color-primary)', 
+                              cursor: 'pointer',
+                              textDecoration: 'underline'
+                            }}>
+                              Ganti Foto
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                style={{ display: 'none' }} 
+                                onChange={(e) => handleFileUpload(e, order)}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p style={{ fontSize: '0.875rem', color: 'var(--color-danger)', marginBottom: '0.5rem' }}>
+                            * Mohon upload bukti transfer
+                          </p>
+                          <label>
+                            <Button size="sm" variant="secondary" as="span" style={{ cursor: 'pointer' }} disabled={uploadingId === order.id}>
+                              <Upload size={16} style={{ marginRight: '0.5rem' }} />
+                              {uploadingId === order.id ? 'Mengupload...' : 'Upload Bukti Bayar'}
+                            </Button>
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              style={{ display: 'none' }} 
+                              onChange={(e) => handleFileUpload(e, order)}
+                              disabled={uploadingId === order.id}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', textAlign: 'right' }}>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                     Total Pembayaran
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>

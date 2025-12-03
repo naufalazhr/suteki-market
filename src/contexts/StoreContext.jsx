@@ -59,6 +59,11 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
+  const updateOrder = (updatedOrder) => {
+    storage.updateOrder(updatedOrder);
+    refreshData();
+  };
+
   const addUser = (user) => {
     storage.addUser(user);
     refreshData();
@@ -85,6 +90,7 @@ export const StoreProvider = ({ children }) => {
       deleteProduct,
       placeOrder,
       updateOrderStatus,
+      updateOrder,
       addUser,
       updateUser,
       removeUser,
