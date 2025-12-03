@@ -4,7 +4,7 @@ import { useStore } from '../../contexts/StoreContext';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { Input } from '../../components/Input';
-import { Plus, Trash, CheckCircle, Bell, WhatsappLogo, Printer, UserGear, X } from 'phosphor-react';
+import { Plus, Trash, CheckCircle, Bell, WhatsappLogo, Printer, UserGear, X, Warning } from 'phosphor-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const SellerDashboard = () => {

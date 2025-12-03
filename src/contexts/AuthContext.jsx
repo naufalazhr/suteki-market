@@ -41,13 +41,19 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithGoogle = async (accessToken) => {
     try {
+      console.log("Authenticating with Google...");
       const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       
-      if (!response.ok) throw new Error('Failed to fetch user info');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Google UserInfo Error:", response.status, errorData);
+        throw new Error(`Failed to fetch user info: ${response.status}`);
+      }
       
       const data = await response.json();
+      console.log("Google User Info received:", data);
       
       const googleUser = {
         id: `google-${data.sub}`,
@@ -63,7 +69,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error("Google Login Error:", error);
-      return { success: false, message: 'Failed to login with Google' };
+      return { success: false, message: 'Failed to login with Google. Please try again.' };
     }
   };
 
